@@ -72,24 +72,24 @@ function onLoad() {
 	window.ietng = {};
 	window.ietng.extension = WL.extension;
 
-	window.ietng.OpenBackupDialog = function (mode = "auto") {
+	window.ietng.OpenBackupDialog = function(mode = "auto") {
 		Services.console.logStringMessage("IETNG: Start backup check");
 		let last = Services.prefs.getIntPref("extensions.importexporttoolsng.autobackup.last");
 		let now = new Date();
 
 		// Abort in automode, if not yet due.
-		if (mode == "auto") {
+		if(mode == "auto") {
 			let frequency = Services.prefs.getIntPref("extensions.importexporttoolsng.autobackup.frequency");
-			if (frequency === 0)
+			if(frequency === 0)
 				return;
 
-			if (frequency === 99)
+			if(frequency === 99)
 				frequency = 0.001;
 
 			let time = now.getTime() / 1000;
 			let days = 24 * 60 * 60 * frequency;
 
-			if ((time - last) < (days - (60 * 5))) {
+			if((time - last) < (days - (60 * 5))) {
 				return;
 			}
 		}
@@ -125,7 +125,7 @@ function onLoad() {
 		// we need tabmail for its tabMonitor
 		var tabmail = document.getElementById("tabmail");
 
-		if (!mainButtFunc && !buttCtxMenu) {
+		if(!mainButtFunc && !buttCtxMenu) {
 			// can't operate on ziltch
 			return false;
 		}
@@ -147,7 +147,7 @@ function onLoad() {
 
 			async onTabSwitched(newTabInfo, oldTabInfo) {
 				// console.log(newTabInfo.mode?.name)
-				if (newTabInfo.mode?.name == "mail3PaneTab" || newTabInfo.mode?.name == "mailMessageTab") {
+				if(newTabInfo.mode?.name == "mail3PaneTab" || newTabInfo.mode?.name == "mailMessageTab") {
 					await setup();
 				}
 			}
@@ -162,15 +162,15 @@ function onLoad() {
 
 		async function setup() {
 			var tbExtButton;
-			for (var index = 0; index < 100; index++) {
+			for(var index = 0; index < 100; index++) {
 				tbExtButton = document.querySelector(`button.${toolbarClass}[extension="${addOnId}"]`);
-				if (tbExtButton) {
+				if(tbExtButton) {
 					break;
 				}
 				await new Promise(resolve => window.setTimeout(resolve, 1));
 			}
 
-			if (!tbExtButton) {
+			if(!tbExtButton) {
 				console.log("Exception: Extension button not found on toolbar")
 				return;
 			}
@@ -180,11 +180,11 @@ function onLoad() {
 			listenerTarget.setAttribute("id", listenerTargetId);
 
 			// setup for context menu if requested
-			if (buttCtxMenu) {
+			if(buttCtxMenu) {
 				let ctxMenuXML = `<div id="${listenerTargetId}"> ${buttCtxMenu} </div>`;
 				try {
 					WL.injectElements(ctxMenuXML, ctxMenuDTDs);
-				} catch (e) {
+				} catch(e) {
 					console.log("Exception adding context menu:", e);
 					return;
 				}
@@ -206,10 +206,10 @@ function onLoad() {
 			e.stopImmediatePropagation();
 			e.stopPropagation();
 
-			if (e.target.nodeName == "menuitem") {
+			if(e.target.nodeName == "menuitem") {
 				return;
 			}
-			if (mainButtFunc && !buttCtxMenu) {
+			if(mainButtFunc && !buttCtxMenu) {
 				// only a main click action
 				mainButtFunc();
 				return;
@@ -220,7 +220,7 @@ function onLoad() {
 			let targetDivBRect = tbExtButton.getBoundingClientRect();
 			let inTargetWindow = e.clientX > (targetDivBRect.x + targetDivBRect.width - dropdownTargetWidth);
 			// open context menu if configure
-			if ((buttCtxMenu && !mainButtFunc) || (buttCtxMenu && inTargetWindow)) {
+			if((buttCtxMenu && !mainButtFunc) || (buttCtxMenu && inTargetWindow)) {
 				tbExtButton.nextElementSibling.openPopup(tbExtButton, "after_start", 0, 0, false, false);
 			} else {
 				mainButtFunc();
@@ -230,6 +230,12 @@ function onLoad() {
 
 	window.setupHotKeys('messenger');
 	window.addHotKeysObserver();
+
+
+	setInterval(() => {
+		window.ietng.OpenBackupDialog();
+
+	}, 1000 * 60 * 5)
 }
 
 function onUnload() {
