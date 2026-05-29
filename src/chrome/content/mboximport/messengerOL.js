@@ -78,7 +78,7 @@ function onLoad() {
 		let now = new Date();
 
 		// Abort in automode, if not yet due.
-		if(mode == "auto") {
+		if(mode == "auto" || mode == "scheduled") {
 			let frequency = Services.prefs.getIntPref("extensions.importexporttoolsng.autobackup.frequency");
 			if(frequency === 0)
 				return;
@@ -236,7 +236,8 @@ function onLoad() {
 		window.ietng.OpenBackupDialog("scheduled");
 
 	}, 1000 * 60 * 2)
-	window.ietng.OpenBackupDialog("scheduled");
+	setTimeout(() =>
+		window.ietng.OpenBackupDialog("scheduled"), 0)
 }
 
 function onUnload() {
