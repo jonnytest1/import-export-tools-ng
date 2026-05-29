@@ -231,11 +231,12 @@ function onLoad() {
 	window.setupHotKeys('messenger');
 	window.addHotKeysObserver();
 
+	console.log("starting backup timer")
+	window.setInterval(() => {
+		window.ietng.OpenBackupDialog("scheduled");
 
-	setInterval(() => {
-		window.ietng.OpenBackupDialog();
-
-	}, 1000 * 60 * 5)
+	}, 1000 * 60 * 2)
+	window.ietng.OpenBackupDialog("scheduled");
 }
 
 function onUnload() {

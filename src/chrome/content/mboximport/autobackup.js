@@ -32,7 +32,7 @@ var gBackupPrefBranch = Cc["@mozilla.org/preferences-service;1"]
 
 var autoBackup = {
 
-	onOK: function () {
+	onOK: function() {
 		setTimeout(autoBackup.start, 500);
 		document.getElementById("start").removeAttribute("collapsed");
 		document.getElementById("go").collapsed = true;
@@ -45,16 +45,16 @@ var autoBackup = {
 		// return false;
 	},
 
-	load: function () {
+	load: function() {
 		var os = navigator.platform.toLowerCase();
-		if (os.indexOf("mac") > -1)
+		if(os.indexOf("mac") > -1)
 			document.getElementById("macWarn").removeAttribute("collapsed");
 		var label = document.getElementById("last").textContent;
 		autoBackup.last = window.arguments[0];
 		autoBackup.now = window.arguments[1];
 		autoBackup.mode = window.arguments[2];
 
-		if (autoBackup.last > 0) {
+		if(autoBackup.last > 0) {
 			var last = autoBackup.last * 1000;
 			var time = new Date(last);
 			var localTime = time.toLocaleString();
@@ -63,51 +63,55 @@ var autoBackup = {
 			document.getElementById("last").textContent = label.replace("$t", "(none)");
 		}
 
-		if (autoBackup.mode != "auto") {
+		if(autoBackup.mode != "auto") {
 			document.getElementById("autoModeDesc").hidden = true;
+		}
+
+		if(autoBackup.mode == "scheduled") {
+			autoBackup.onOK();
 		}
 	},
 
-	getDir: async function () {
+	getDir: async function() {
 		var file = null;
 		var dir = null;
 
 		// handle empty pref
 		try {
 			dir = gBackupPrefBranch.getCharPref("extensions.importexporttoolsng.autobackup.dir");
-		} catch (ex) {
+		} catch(ex) {
 			dir = null;
 		}
 
-		if (dir) {
+		if(dir) {
 			try {
 
 				file = Cc["@mozilla.org/file/local;1"]
 					.createInstance(Ci.nsIFile);
 				file.initWithPath(dir);
-				if (!file.exists() || !file.isDirectory()) {
+				if(!file.exists() || !file.isDirectory()) {
 					alert("IETNG: dir doesn't exist or not dir")
 
 					file = null;
 				}
 
-			} catch (e) {
+			} catch(e) {
 				alert("IETNG: ex\n" + e);
 				file = null;
 			}
 		}
 
-		if (!file) {
+		if(!file) {
 			file = await asyncIETgetPickerModeFolder();
 			autoBackup.filePicker = true;
 		}
 		return file;
 	},
 
-	writeLog: function (data, append) {
+	writeLog: function(data, append) {
 		var foStream = Cc["@mozilla.org/network/file-output-stream;1"]
 			.createInstance(Ci.nsIFileOutputStream);
-		if (append)
+		if(append)
 			foStream.init(autoBackup.logFile, 0x02 | 0x08 | 0x10, 0o664, 0);
 		else
 			foStream.init(autoBackup.logFile, 0x02 | 0x08 | 0x20, 0o666, 0);
@@ -115,15 +119,15 @@ var autoBackup = {
 		foStream.close();
 	},
 
-	start: async function () {
+	start: async function() {
 		// "dir" is the target directory for the backup
 		var dir = await autoBackup.getDir();
-		if (!dir)
+		if(!dir)
 			return;
 
 		let w = Services.wm.getMostRecentWindow("mail:3pane");
 
-		if (!dir.exists() || !dir.isWritable) {
+		if(!dir.exists() || !dir.isWritable) {
 			Services.prompt.alert(w, "Error", w.ietngAddon.extension.localeData.localizeMessage("noBackup"));
 			window.close();
 			return;
@@ -131,10 +135,10 @@ var autoBackup = {
 		var nameType = gBackupPrefBranch.getIntPref("extensions.importexporttoolsng.autobackup.dir_name_type");
 
 		var dirName = null;
-		if (nameType === 1) {
+		if(nameType === 1) {
 			try {
 				dirName = gBackupPrefBranch.getCharPref("extensions.importexporttoolsng.autobackup.dir_custom_name");
-			} catch (e) {
+			} catch(e) {
 				dirName = null;
 			}
 		}
@@ -148,17 +152,17 @@ var autoBackup = {
 			var offlineManager = Cc["@mozilla.org/messenger/offline-manager;1"]
 				.getService(Ci.nsIMsgOfflineManager);
 			offlineManager.synchronizeForOffline(false, false, false, true, msgWindow);
-		} catch (e) { }
+		} catch(e) { }
 
 		var clone = dir.clone();
 		autoBackup.profDir = Cc["@mozilla.org/file/directory_service;1"]
 			.getService(Ci.nsIProperties)
 			.get("ProfD", Ci.nsIFile);
 
-		if (dirName && !autoBackup.filePicker) {
+		if(dirName && !autoBackup.filePicker) {
 			autoBackup.backupDirPath = clone.path;
 			clone.append(dirName);
-			if (!clone.exists())
+			if(!clone.exists())
 				clone.create(1, 0o755);
 		} else {
 			autoBackup.backupDirPath = clone.path;
@@ -181,7 +185,7 @@ var autoBackup = {
 
 		var oldLogFile = clone.clone();
 		oldLogFile.append("BackupTime.txt");
-		if (oldLogFile.exists())
+		if(oldLogFile.exists())
 			oldLogFile.remove(false);
 
 		autoBackup.array1 = [];
@@ -189,13 +193,13 @@ var autoBackup = {
 
 		autoBackup.scanExternal(clone);
 
-		if (autoBackup.type === 1) { // just mail
+		if(autoBackup.type === 1) { // just mail
 			var profDirMail = autoBackup.profDir.clone();
 			profDirMail.append("Mail");
 			autoBackup.scanDir(profDirMail, clone, autoBackup.profDir);
 			profDirMail = autoBackup.profDir.clone();
 			profDirMail.append("ImapMail");
-			if (profDirMail.exists())
+			if(profDirMail.exists())
 				autoBackup.scanDir(profDirMail, clone, autoBackup.profDir);
 		} else {
 			autoBackup.scanDir(autoBackup.profDir, clone, autoBackup.profDir);
@@ -204,22 +208,22 @@ var autoBackup = {
 		autoBackup.write(0);
 	},
 
-	end: function (sec) {
-		if (sec === 0) {
+	end: function(sec) {
+		if(sec === 0) {
 			window.close();
 		} else {
 			window.setTimeout(autoBackup.end, 1000, sec - 1);
 		}
 	},
 
-	save: function (entry, destDir, root) {
+	save: function(entry, destDir, root) {
 		var force = false;
-		if ((autoBackup.unique && autoBackup.saveMode !== 1) || autoBackup.saveMode === 0)
+		if((autoBackup.unique && autoBackup.saveMode !== 1) || autoBackup.saveMode === 0)
 			force = true;
 
 		var lmt = entry.lastModifiedTime / 1000;
 		// Check if exists a older file to replace in the backup directory
-		if (force || lmt > autoBackup.last) {
+		if(force || lmt > autoBackup.last) {
 			var entrypath = entry.parent.path;
 			var filepath = destDir.path;
 			var newpath = entrypath.replace(root.path, filepath);
@@ -228,29 +232,29 @@ var autoBackup = {
 			LF.initWithPath(newpath);
 			var LFclone = LF.clone();
 			LFclone.append(entry.leafName);
-			if (LFclone.exists()) {
+			if(LFclone.exists()) {
 				LFclone.remove(false);
 			}
 			try {
 				autoBackup.array1.push(entry);
 				autoBackup.array2.push(LF);
-			} catch (e) { }
+			} catch(e) { }
 		}
 	},
 
 	// dirToScan is the directory to scan
 	// destDir is the target directory for the backup
 	// root is the root directory of the files to save --> it's the profile directory or the external directory of the account
-	scanDir: function (dirToScan, destDir, root) {
-		if (!dirToScan.exists())
+	scanDir: function(dirToScan, destDir, root) {
+		if(!dirToScan.exists())
 			return;
 		var entries = dirToScan.directoryEntries;
-		while (entries.hasMoreElements()) {
+		while(entries.hasMoreElements()) {
 			var entry = entries.getNext();
 			entry.QueryInterface(Ci.nsIFile);
-			if (entry.exists()) {
-				if (entry.leafName !== "lock" && entry.leafName !== "parent.lock" && entry.leafName !== ".parentlock") {
-					if (entry.isDirectory())
+			if(entry.exists()) {
+				if(entry.leafName !== "lock" && entry.leafName !== "parent.lock" && entry.leafName !== ".parentlock") {
+					if(entry.isDirectory())
 						autoBackup.scanDir(entry, destDir, root);
 					else
 						autoBackup.save(entry, destDir, root);
@@ -262,21 +266,21 @@ var autoBackup = {
 		}
 	},
 
-	write: async function (index) {
+	write: async function(index) {
 		try {
 			autoBackup.array1[index].copyTo(autoBackup.array2[index], "");
 			var logline = autoBackup.array1[index].path + "\r\n";
 			autoBackup.writeLog(logline, true);
-		} catch (e) {
+		} catch(e) {
 			var error;
-			if (autoBackup.array1[index])
+			if(autoBackup.array1[index])
 				error = "\r\n***Error with file " + autoBackup.array1[index].path + "\r\nError Type: " + e + "\r\n\r\n";
 			else
 				error = "\r\n***Error Type: " + e + "\r\n\r\n";
 			autoBackup.writeLog(error, true);
 		}
 		index++;
-		if (autoBackup.array1.length > index) {
+		if(autoBackup.array1.length > index) {
 			var c = (index / autoBackup.array1.length) * 100;
 			document.getElementById("pm").value = parseInt(c);
 			window.setTimeout(autoBackup.write, 50, index);
@@ -293,9 +297,9 @@ var autoBackup = {
 		}
 	},
 
-	removeOldBackups: async function () {
+	removeOldBackups: async function() {
 		let retainNumBackups = gBackupPrefBranch.getIntPref("extensions.importexporttoolsng.autobackup.retainNumBackups");
-		if (retainNumBackups == 0) {
+		if(retainNumBackups == 0) {
 			return;
 		}
 
@@ -313,40 +317,40 @@ var autoBackup = {
 
 		removeBackupsList = removeBackupsList.slice(0, rn);
 
-		for (const fo of removeBackupsList) {
+		for(const fo of removeBackupsList) {
 			await IOUtils.remove(fo.fn, { recursive: true });
 		}
 	},
 
-	scanExternal: function (destDir) {
+	scanExternal: function(destDir) {
 		let { MailServices } = ChromeUtils.importESModule("resource:///modules/MailServices.sys.mjs");
 
 		var file = destDir.clone();
 		file.append("ExternalMailFolders");
-		if (!file.exists())
+		if(!file.exists())
 			file.create(1, 0o775);
-		for (let server of MailServices.accounts.allServers) {
+		for(let server of MailServices.accounts.allServers) {
 			var parentDir = null;
 			let serverFile = server.localPath;
 
-			if (serverFile.parent && serverFile.parent.parent)
+			if(serverFile.parent && serverFile.parent.parent)
 				parentDir = serverFile.parent.parent;
 			var clone = file.clone();
 			clone.append(serverFile.leafName);
 			// Now "clone" path is  --> <directory backup>/ExternalMailFolder/<account root directory leafname>
-			if (!parentDir || !autoBackup.profDir.equals(parentDir))
+			if(!parentDir || !autoBackup.profDir.equals(parentDir))
 				autoBackup.scanDir(serverFile, clone, serverFile);
 		}
 	},
 };
 
-document.addEventListener("dialogaccept", function (event) {
+document.addEventListener("dialogaccept", function(event) {
 	autoBackup.onOK();
 	event.preventDefault();
 	event.stopPropagation();
 });
 
-window.addEventListener("load", function (event) {
+window.addEventListener("load", function(event) {
 	i18n.updateDocument({ extension: window.opener.ietngAddon.extension });
 	autoBackup.load();
 });
